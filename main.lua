@@ -1,9 +1,7 @@
 dofile('htu21d.lua')
 dofile('dsp.lua')
-co2 = 0
-pwm = -1
-verbose = 1
-ledshow = 1 
+co2, pwm, warmup = 0, -1, 0
+verbose, ledshow = 0, 1
 ws2812.init()
 pwm_pin = 6
 gpio.mode(pwm_pin, gpio.INT)
@@ -28,11 +26,20 @@ function to_level(ppm)
 end
 
 log_data = function()
-    temp = htu21d:temp()
+    temp = htu21d:temp()/10
     hum = htu21d:hum()
-    dsp:println(co2, '' .. temp/100 ..'.'.. temp%100 .. 'C', hum .. '%')
-    if verbose>0 then 
-        print('{"time":'..tmr.time()..',"co2":'..co2..',"temp":'..temp..',"hum":'..hum.."}") end
+    dsp:dsp('CLR');dsp:dsp('TSZ2');
+    if warmup == 0 and tmr.time() < 200 then
+        dsp:dsp('PRL****');
+    else
+        dsp:dsp('PRN' .. co2);dsp:dsp('TSZ1');dsp:dsp('PRNppm');dsp:dsp('TSZ2');dsp:dsp('PRL')
+        warmup = 1
+        if verbose>0 then 
+            print('{"time":'..tmr.time()..',"co2":'..co2..',"temp":'..temp..',"hum":'..hum.."}") end
+    end
+    dsp:dsp('PRL' .. temp/10 ..'.'.. temp%10 .. 'C');dsp:dsp('PRN' .. hum .. '%')
+    dsp:dsp('TSZ1');dsp:dsp('CRS4241');dsp:dsp('PRN' .. tmr.time())
+    dsp:dsp('CRS4233');dsp:dsp('PRN' .. node.heap());dsp:dsp()
 	if ledshow>0 then to_level(co2) end
 end
 
