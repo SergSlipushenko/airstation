@@ -1,6 +1,6 @@
 wifi.setmode(wifi.NULLMODE)
 htu21d=dofile('htu21d.lua')
-dsp=dofile('u8g.lua')
+dsp=dofile('pcd8544.lua')
 mhz19=dofile('mhz19.lua')
 leds=dofile('leds.lua')
 cfg=dofile('config.lua')
